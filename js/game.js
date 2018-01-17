@@ -13,6 +13,8 @@ function preload() {
 	game.load.image('ball','assets/sprites/ball.png');
 }
 
+var balls;
+
 var ball;
 var downKey, upKey, leftKey, rightKey;
 var mouseLeft, mouse_orig_x, mouse_orig_y, shotDist, shotAngle;
@@ -26,7 +28,14 @@ var shotMax = 300;
 function create() {
 
  	game.stage.backgroundColor = '#f2d09b';
+
+ 	//=================initialize arcade physics=================
+	//===========================================================
 	game.physics.startSystem(Phaser.Physics.ARCADE);
+	balls = game.add.group();
+	balls.enableBody = true;
+	balls.physicsBodyType = Phaser.Physics.ARCADE;
+	//===========================================================
 
 
 	//===============initialize key/moues captures===============
@@ -41,38 +50,27 @@ function create() {
 
 	mouseLeft.onDown.add(mouseDown, this);
 	mouseLeft.onUp.add(mouseUp, this);
+	downKey.onDown.add(spawnBall, this);
 	//===========================================================
 
 
-	//==================initialize ball physics==================
+	//=====================spawn player ball=====================
 	//===========================================================
-	ball = game.add.sprite(400, 200, 'ball');
-	game.physics.enable(ball, Phaser.Physics.ARCADE);
-
-	//  This gets it moving
-    //ball.body.velocity.setTo(200, 200);
-  
-    //  This makes the game world bounce-able
-    ball.body.collideWorldBounds = true;
-    
-    //  This sets the image bounce energy for the horizontal  and vertical vectors (as an x,y point). "1" is 100% energy return
-    ball.body.bounce.set(0.5);
-
-    ball.body.drag.set(50,50);
-
-	//ball.body.gravity.set(0, 0);
+	ball = spawnBall();
 	//===========================================================
 
 
 	debugText[0] = "neutral";
 
-	line = new Phaser.Line(ball.body.x, ball.body.y, 0, 0);
+	line = new Phaser.Line(ball.body.center.x, ball.body.center.y, 0, 0);
 
 
 
 }
 
 function update() {
+
+	game.physics.arcade.collide(balls);
 
 	if(mouseLeft.isDown) {
 		debugText[1] = Phaser.Math.roundTo(
@@ -118,6 +116,20 @@ function mouseUp() {
 function applyForceToBall() {
 	ball.body.velocity.add(lengthdir_x(shotDist*shotMag,shotAngle+180),lengthdir_y(shotDist*shotMag,shotAngle+180));
 
+}
+
+function spawnBall() {
+	var newball = balls.create(
+		game.math.between(20,780), 
+		game.math.between(20,580), 
+		'ball');
+
+    newball.body.collideWorldBounds = true;
+    newball.body.bounce.set(0.5);
+    newball.body.drag.set(50,50);
+    newball.body.setCircle(9);
+
+    return newball;
 }
 
 
