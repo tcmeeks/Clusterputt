@@ -4,13 +4,14 @@
 	1/17/2018
 ===========================================================*/
 
-
-
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 
 	game.load.image('ball','assets/sprites/ball.png');
+
+	game.load.tilemap('level1','assets/tilemaps/maps/map1.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.image('mapTiles','assets/tilemaps/tilesheets/blowharder.png');
 }
 
 var balls;
@@ -25,9 +26,27 @@ var moving = false;
 var shotMag = 2;
 var shotMax = 300;
 
+var map;
+var layer = [];
+
 function create() {
 
- 	game.stage.backgroundColor = '#f2d09b';
+ 	
+
+ 	//======================initialize map ======================
+	//===========================================================
+	game.stage.backgroundColor = '#f2d09b';
+
+	//http://baraujo.net/integrating-tiled-maps-with-phaser/
+	map = game.add.tilemap('level1');
+	map.addTilesetImage('blowhard','mapTiles');
+
+
+	layer[1] = map.createLayer('water');
+	layer[2] = map.createLayer('cliff');
+	layer[0] = map.createLayer('land');
+
+
 
  	//=================initialize arcade physics=================
 	//===========================================================
@@ -54,10 +73,17 @@ function create() {
 	//===========================================================
 
 
+
+
+
+
+
 	//=====================spawn player ball=====================
 	//===========================================================
 	ball = spawnBall();
 	//===========================================================
+
+
 
 
 	debugText[0] = "neutral";
@@ -65,12 +91,17 @@ function create() {
 	line = new Phaser.Line(ball.body.center.x, ball.body.center.y, 0, 0);
 
 
-
 }
 
 function update() {
 
+	//=====================physics settings======================
+	//===========================================================
 	game.physics.arcade.collide(balls);
+	game.physics.arcade.collide(balls, layer[2]);
+	game.physics.arcade.collide(balls, layer[1]);
+
+
 
 	if(mouseLeft.isDown) {
 		debugText[1] = Phaser.Math.roundTo(
