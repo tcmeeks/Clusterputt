@@ -1,0 +1,24 @@
+{
+  "name": "package",
+  "version": "1.0.0",
+  "description": "Work in progress: https://tcmeeks.github.io/Clusterputt/",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.16.2",
+    "socket.io": "^2.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tcmeeks/Clusterputt.git"
+  },
+  "author": "Taylor Meeks",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tcmeeks/Clusterputt/issues"
+  },
+  "homepage": "https://github.com/tcmeeks/Clusterputt#readme"
+}

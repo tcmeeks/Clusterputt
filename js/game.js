@@ -10,7 +10,7 @@ function preload() {
 
 	game.load.image('ball','assets/sprites/ball.png');
 
-	game.load.tilemap('level1','assets/tilemaps/maps/map1.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level1','assets/tilemaps/maps/level1.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.image('mapTiles','assets/tilemaps/tilesheets/blowharder.png');
 }
 
@@ -41,14 +41,14 @@ function create() {
 	map = game.add.tilemap('level1');
 	map.addTilesetImage('blowhard','mapTiles');
 	
-	map.setCollisionBetween(1, 9999, true, 'cliff');
+	map.setCollisionBetween(1, 9999, true, 'obstacles');
 
 
 
 
 	layer[0] = map.createLayer('water');
-	layer[1] = map.createLayer('cliff');
 	layer[2] = map.createLayer('land');
+	layer[1] = map.createLayer('obstacles');
 
 	layer[0].setScale(2,2);
 	layer[1].setScale(2,2);
