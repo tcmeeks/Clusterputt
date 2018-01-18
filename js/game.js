@@ -4,7 +4,7 @@
 	1/17/2018
 ===========================================================*/
 
-var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 
@@ -44,9 +44,17 @@ function create() {
 	map.setCollisionBetween(1, 9999, true, 'cliff');
 
 
+
+
 	layer[0] = map.createLayer('water');
 	layer[1] = map.createLayer('cliff');
 	layer[2] = map.createLayer('land');
+
+	layer[0].setScale(2,2);
+	layer[1].setScale(2,2);
+	layer[2].setScale(2,2);
+	layer[0].resizeWorld();
+
 
 
 
@@ -90,7 +98,7 @@ function create() {
 
 	debugText[0] = "neutral";
 
-	line = new Phaser.Line(ball.body.center.x, ball.body.center.y, 0, 0);
+	line = new Phaser.Line();
 
 
 }
@@ -107,20 +115,36 @@ function update() {
 	if(mouseLeft.isDown) {
 		debugText[1] = Phaser.Math.roundTo(
 			Phaser.Math.distance(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y), 0);
-		debugText[2] = Phaser.Math.radToDeg(
-			Phaser.Math.angleBetween(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y));
+		debugText[2] = Phaser.Math.roundTo(
+			Phaser.Math.radToDeg(
+			Phaser.Math.angleBetween(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y)), 
+			0);
 
 		line.setTo(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y);
 
 	}
+
+	/*
+	if(moving && ball.body.velocity.x < 0.2 && ball.body.velocity.y < 0.2) {
+		moving = false;
+	}*/
+
+	if(moving) {
+		if(ball.body.position.equals(ball.body.prev)) {
+			moving = false;
+		}
+	}
+
+
+
 
 
 }
 
 function render() {
 
-	game.debug.text(debugText[0], 32, 32);
-	game.debug.text("Force: "+debugText[1]+", Direction: "+debugText[2], 32, 64);
+	game.debug.text("Moving: "+moving, 16, 16);
+	game.debug.text("Force: "+debugText[1]+", Direction: "+debugText[2], 16, 32);
 	game.debug.geom(line);
 }
 
@@ -139,14 +163,14 @@ function mouseUp() {
 	shotDist = Phaser.Math.distance(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y);
 	shotAngle = Phaser.Math.radToDeg(
 		Phaser.Math.angleBetween(mouse_orig_x, mouse_orig_y, game.input.x, game.input.y));
-	debugText[1] = Phaser.Math.roundTo(shotDist, 0);
-	debugText[2] = shotAngle;
 
+	if(!moving)
 	applyForceToBall();
 }
 
 function applyForceToBall() {
 	ball.body.velocity.add(lengthdir_x(shotDist*shotMag,shotAngle+180),lengthdir_y(shotDist*shotMag,shotAngle+180));
+	moving = true;
 
 }
 
