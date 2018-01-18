@@ -40,11 +40,13 @@ function create() {
 	//http://baraujo.net/integrating-tiled-maps-with-phaser/
 	map = game.add.tilemap('level1');
 	map.addTilesetImage('blowhard','mapTiles');
+	
+	map.setCollisionBetween(1, 9999, true, 'cliff');
 
 
-	layer[1] = map.createLayer('water');
-	layer[2] = map.createLayer('cliff');
-	layer[0] = map.createLayer('land');
+	layer[0] = map.createLayer('water');
+	layer[1] = map.createLayer('cliff');
+	layer[2] = map.createLayer('land');
 
 
 
@@ -98,7 +100,6 @@ function update() {
 	//=====================physics settings======================
 	//===========================================================
 	game.physics.arcade.collide(balls);
-	game.physics.arcade.collide(balls, layer[2]);
 	game.physics.arcade.collide(balls, layer[1]);
 
 
