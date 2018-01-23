@@ -4,19 +4,23 @@
 	1/17/2018
 ===========================================================*/
 
-var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+var socket; // define a global variable called socket 
+socket = io.connect(); // send a connection request to the server
+
+var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'Clusterputt', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 
-	game.load.image('ball','assets/sprites/ball.png');
+	game.load.image('ball','/assets/sprites/ball.png');
 
-	game.load.tilemap('level1','assets/tilemaps/maps/level1.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.image('mapTiles','assets/tilemaps/tilesheets/blowharder.png');
+	game.load.tilemap('level1','/assets/tilemaps/maps/level1.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.image('mapTiles','/assets/tilemaps/tilesheets/blowharder.png');
 }
 
 var balls;
 
 var ball;
+var otherBalls;
 var downKey, upKey, leftKey, rightKey;
 var mouseLeft, mouse_orig_x, mouse_orig_y, shotDist, shotAngle;
 var debugText = ["","",""];
@@ -31,6 +35,11 @@ var layer = [];
 
 function create() {
 
+	console.log("client started");
+	//listen to the “connect” message from the server. The server 
+	//automatically emit a “connect” message when the cleint connets.When 
+	//the client connects, call onsocketConnected.  
+	socket.on("connect", onSocketConnected); 
  	
 
  	//======================initialize map ======================
@@ -54,6 +63,9 @@ function create() {
 	layer[1].setScale(2,2);
 	layer[2].setScale(2,2);
 	layer[0].resizeWorld();
+
+
+	otherBalls = [];
 
 
 
@@ -100,7 +112,90 @@ function create() {
 
 	line = new Phaser.Line();
 
+	// Start listening for events
+	setEventHandlers();
 
+}
+
+var setEventHandlers = function () {
+	// Socket connection successful
+	socket.on('connect', onSocketConnected)
+
+	// Socket disconnection
+	socket.on('disconnect', onSocketDisconnect)
+
+	// New player message received
+	socket.on('new player', onNewPlayer)
+
+	// Player move message received
+	socket.on('move player', onMovePlayer)
+
+	// Player removed message received
+	socket.on('remove player', onRemovePlayer)
+}
+
+// Socket connected
+function onSocketConnected  () {
+	console.log('Connected to socket server');
+
+	otherBalls.forEach(function (otherBall) {
+		otherBall.player.kill();
+	})
+	otherBalls = [];
+
+	// Send local player data to the game server
+	socket.emit('new player', { x: ball.x, y: ball.y});
+}
+
+// Socket disconnected
+function onSocketDisconnect () {
+	console.log('Disconnected from socket server');
+}
+
+// New player
+function onNewPlayer (data) {
+	console.log('New player connected:', data.id);
+
+	// Avoid possible duplicate players
+	var duplicate = playerById(data.id)
+	if (duplicate) {
+	console.log('Duplicate player!');
+	return
+	}
+
+	// Add new player to the remote players array
+	otherBalls.push(new RemotePlayer(data.id, game, player, data.x, data.y));
+}
+
+// Move player
+function onMovePlayer (data) {
+  var movePlayer = playerById(data.id);
+
+  // Player not found
+  if (!movePlayer) {
+    console.log('Game.js - Player not found: ', data.id);
+    return
+  }
+
+  // Update player position
+  movePlayer.player.x = data.x;
+  movePlayer.player.y = data.y;
+}
+
+// Remove player
+function onRemovePlayer (data) {
+  var removePlayer = playerById(data.id);
+
+  // Player not found
+  if (!removePlayer) {
+    console.log('Game.js - Player not found: ', data.id);
+    return;
+  }
+
+  removePlayer.player.kill();
+
+  // Remove player from array
+  otherBalls.splice(otherBalls.indexOf(removePlayer), 1);
 }
 
 function update() {
@@ -110,6 +205,12 @@ function update() {
 	game.physics.arcade.collide(balls);
 	game.physics.arcade.collide(balls, layer[1]);
 
+	for (var i = 0; i < otherBalls.length; i++) {
+	    if (otherBalls[i].alive) {
+	      otherBalls[i].update();
+	      game.physics.arcade.collide(ball, otherBalls[i].ball);
+    	}
+	}
 
 
 	if(mouseLeft.isDown) {
@@ -124,11 +225,7 @@ function update() {
 
 	}
 
-	/*
-	if(moving && ball.body.velocity.x < 0.2 && ball.body.velocity.y < 0.2) {
-		moving = false;
-	}*/
-
+	//turn off "moving" when ball stops
 	if(moving) {
 		if(ball.body.position.equals(ball.body.prev)) {
 			moving = false;
@@ -136,8 +233,7 @@ function update() {
 	}
 
 
-
-
+	socket.emit('move player', { x: ball.x, y: ball.y});
 
 }
 
@@ -150,8 +246,8 @@ function render() {
 
 
 
-
-//===============custom functions===============
+//======================helper functions=====================
+//===========================================================
 function mouseDown() {
 	debugText[0] = "mouseDown";
 	mouse_orig_x = game.input.x;
@@ -171,7 +267,6 @@ function mouseUp() {
 function applyForceToBall() {
 	ball.body.velocity.add(lengthdir_x(shotDist*shotMag,shotAngle+180),lengthdir_y(shotDist*shotMag,shotAngle+180));
 	moving = true;
-
 }
 
 function spawnBall() {
@@ -186,6 +281,16 @@ function spawnBall() {
     newball.body.setCircle(9);
 
     return newball;
+}
+
+// Find player by ID
+function playerById (id) {
+  for (var i = 0; i < otherBalls.length; i++) {
+    if (otherBalls[i].player.name === id) {
+      return otherBalls[i];
+    }
+  }
+  return false;
 }
 
 
