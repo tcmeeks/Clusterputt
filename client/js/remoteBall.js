@@ -16,6 +16,8 @@ var RemoteBall = function(index, game, player, startX, startY) {
     this.player.body.drag.set(50,50);
     this.player.body.setCircle(9);
 
+    this.player.name = index.toString()
+
     // this.player.anchor.setTo(0.5, 0.5)
 
 
@@ -25,7 +27,7 @@ var RemoteBall = function(index, game, player, startX, startY) {
 
 }
 
-RemotePlayer.prototype.update = function () {
+RemoteBall.prototype.update = function () {
   if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y) {
     //this.player.play('move');
   } else {
@@ -36,4 +38,4 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.y = this.player.y;
 }
 
-window.RemotePlayer = RemotePlayer;
+window.RemoteBall = RemoteBall;

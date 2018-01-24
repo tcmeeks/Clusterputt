@@ -46,74 +46,76 @@ function init() {
 }
 
 function onSocketConnection (client) {
-  console.log('New player has connected: ' + client.id)
+	console.log('New player has connected: ' + client.id);
 
-  // Listen for client disconnected
-  client.on('disconnect', onClientDisconnect)
+	// Listen for client disconnected
+	client.on('disconnect', onClientDisconnect);
 
-  // Listen for new player message
-  client.on('new player', onNewPlayer)
+	// Listen for new player message
+	client.on('new player', onNewPlayer);
 
-  // Listen for move player message
-  client.on('move player', onMovePlayer)
+	// Listen for move player message
+	client.on('move player', onMovePlayer);
 }
 		
 function onClientDisconnect () {
-  console.log('Player has disconnected: ' + this.id)
+	console.log('Player has disconnected: ' + this.id);
 
-  var removePlayer = playerById(this.id)
+	var removePlayer = playerById(this.id);
 
-  // Player not found
-  if (!removePlayer) {
-    console.log('Server.js - Player not found: ' + this.id)
-    return
-  }
+	// Player not found
+	if (!removePlayer) {
+	console.log('Server.js - removePlayer - Player not found: ' + this.id);
+	return;
+	}
 
-  // Remove player from players array
-  players.splice(players.indexOf(removePlayer), 1)
+	// Remove player from players array
+	players.splice(players.indexOf(removePlayer), 1);
 
-  // Broadcast removed player to connected socket clients
-  this.broadcast.emit('remove player', {id: this.id})
+	// Broadcast removed player to connected socket clients
+	this.broadcast.emit('remove player', {id: this.id});
 }
 
 // New player has joined
 function onNewPlayer (data) {
-  // Create a new player
-  var newBall = new Ball(data.x, data.y)
-  newBall.id = this.id
 
-  // Broadcast new player to connected socket clients
-  this.broadcast.emit('new player', {id: newBall.id, x: newBall.getX(), y: newBall.getY()})
+	console.log('onNewPlayer called');
+	// Create a new player
+	var newBall = new Ball(data.x, data.y);
+	newBall.id = this.id;
 
-  // Send existing players to the new player
-  var i, existingPlayer;
-  for (i = 0; i < players.length; i++) {
-    existingPlayer = players[i];
-    this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY()});
-  }
+	// Broadcast new player to connected socket clients
+	this.broadcast.emit('new player', {id: newBall.id, x: newBall.getX(), y: newBall.getY()});
 
-  // Add new player to the players array
-  players.push(newBall)
+	// Send existing players to the new player
+	var i, existingPlayer;
+	for (i = 0; i < players.length; i++) {
+	existingPlayer = players[i];
+	this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY()});
+	}
+
+	// Add new player to the players array
+	players.push(newBall);
 }
 
 function onMovePlayer (data) {
-  // Find player in array
-  var movePlayer = playerById(this.id)
+	//console.log('onMovePlayer called');
+	// Find player in array
+	var movePlayer = playerById(this.id);
 
-  // Player not found
-  if (!movePlayer) {
-    console.log('Server.js - Player not found: ' + this.id)
-    return
-  }
+	// Player not found
+	if (!movePlayer) {
+	console.log('Server.js - onMovePlayer - Player not found: ' + this.id);
+	return;
+	}
 
-  // Update player position
-  movePlayer.setX(data.x)
-  movePlayer.setY(data.y)
+	// Update player position
+	movePlayer.setX(data.x);
+	movePlayer.setY(data.y);
 
-  // Broadcast updated position to connected socket clients
-  this.broadcast.emit('move player', {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()
-
-  })
+	// Broadcast updated position to connected socket clients
+	this.broadcast.emit('move player', {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()
+	});
 }
 
 /* ************************************************
@@ -122,12 +124,12 @@ function onMovePlayer (data) {
 
 // Find player by ID
 function playerById (id) {
-  var i
-  for (i = 0; i < players.length; i++) {
-    if (players[i].id === id) {
-      return players[i]
-    }
-  }
+	var i;
+	for (i = 0; i < players.length; i++) {
+	if (players[i].id === id) {
+	  return players[i];
+	}
+	}
 
-  return false
+	return false;
 }

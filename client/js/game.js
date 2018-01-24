@@ -4,9 +4,6 @@
 	1/17/2018
 ===========================================================*/
 
-var socket; // define a global variable called socket 
-socket = io.connect(); // send a connection request to the server
-
 var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'Clusterputt', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
@@ -33,13 +30,13 @@ var shotMax = 300;
 var map;
 var layer = [];
 
+var socket; //Socket connection
+
 function create() {
 
 	console.log("client started");
-	//listen to the “connect” message from the server. The server 
-	//automatically emit a “connect” message when the cleint connets.When 
-	//the client connects, call onsocketConnected.  
-	socket.on("connect", onSocketConnected); 
+	socket = io.connect();
+
  	
 
  	//======================initialize map ======================
@@ -115,6 +112,7 @@ function create() {
 	// Start listening for events
 	setEventHandlers();
 
+
 }
 
 var setEventHandlers = function () {
@@ -164,7 +162,7 @@ function onNewPlayer (data) {
 	}
 
 	// Add new player to the remote players array
-	otherBalls.push(new RemotePlayer(data.id, game, player, data.x, data.y));
+	otherBalls.push(new RemoteBall(data.id, game, ball, data.x, data.y));
 }
 
 // Move player
@@ -173,7 +171,7 @@ function onMovePlayer (data) {
 
   // Player not found
   if (!movePlayer) {
-    console.log('Game.js - Player not found: ', data.id);
+    console.log('Game.js - onMovePlayer - Player not found: ', data.id);
     return
   }
 
@@ -188,7 +186,7 @@ function onRemovePlayer (data) {
 
   // Player not found
   if (!removePlayer) {
-    console.log('Game.js - Player not found: ', data.id);
+    console.log('Game.js - onRemovePlayer -  Player not found: ', data.id);
     return;
   }
 
